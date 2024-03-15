@@ -1,0 +1,14 @@
+# Ignorar archivos de configuración locales
+config.ini
+.env
+
+# Ignorar directorio de dependencias de Python
+/venv/
+.venv/
+
+# Ignorar archivos generados
+*.log
+*.pyc
+
+# Ignorar directorio de configuración de VSCode
+.vscode/
