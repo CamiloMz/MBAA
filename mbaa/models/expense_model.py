@@ -14,11 +14,10 @@ class Expense:
     """Class for expense model"""
 
     id: str = uuid.uuid4().hex
-    name: str
+    name: str = ""
     amount: float = 0
     start_date: datetime = datetime.now()
-    end_date: datetime = datetime.now()
-    category_id: str
+    category_id: str = ""
 
     def create_expense(self):
         """Method to create an expense"""
@@ -30,7 +29,6 @@ class Expense:
                         "name",
                         "amount",
                         "start_date",
-                        "end_date",
                         "category_id",
                     ]
                     str_cols = f'({", ".join(cols)})'
@@ -43,7 +41,6 @@ class Expense:
                         self.name,
                         self.amount,
                         self.start_date,
-                        self.end_date,
                         self.category_id,
                     ]
                     cursor.execute(sql, expense_config)

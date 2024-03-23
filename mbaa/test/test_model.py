@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from models.budget_model import Budget
 
-# from models.expense_model import Expense
+from models.expense_model import Expense
 from models.categories_model import Categories
 from utils.message import print_message
 import mysql.connector
@@ -46,6 +46,11 @@ class TestModel:
                 print_message(f"Error creating category: {error}", "error")
             return None
 
+    def get_category_id_by_name_test(self, name):
+        """Function to get category by name"""
+        category_id = Categories().get_category_id_by_name(name)
+        return category_id
+
     def list_budgets_test(self):
         """Function to list budgets"""
         budget_list = Budget().get_all_budgets()
@@ -54,23 +59,20 @@ class TestModel:
     def create_budget_test(self, budget_info: dict):
         """Function to create a budget"""
         try:
-            category_id = self.create_category_test(
-                budget_info.name_category, budget_info.category_type
-            )
-            budget = Budget().get_budget_by_name(budget_info.name_budget)
+            budget = Budget().get_budget_by_name(budget_info["name_budget"])
             if budget:
                 print_message("Budget already exists.", "warning")
                 return budget[0]
             budget = Budget(
-                name=budget_info.name_budget,
-                initial_amount=budget_info.initial_amount,
-                final_amount=budget_info.final_amount,
-                date=budget_info.date,
-                category_id=category_id,
+                name=budget_info["name_budget"],
+                initial_amount=budget_info["initial_amount"],
+                final_amount=budget_info["initial_amount"],
+                date=budget_info["date"],
+                category_id=budget_info["category_id"],
             )
             budget.create_budget()
             time.sleep(1)
-            budget_id = Budget().get_budget_id_by_name(budget_info.name_budget)
+            budget_id = Budget().get_budget_id_by_name(budget_info["name_budget"])
             return budget_id
         except mysql.connector.Error as error:
             if error.errno == errorcode.ER_TABLE_EXISTS_ERROR:
@@ -79,29 +81,36 @@ class TestModel:
                 print_message(f"Error creating budget: {error}", "error")
             return None
 
-    # def create_expense_test(self, expense_info: dict):
-    #     """Function to create an expense"""
-    #     try:
-    #         category_id = self.create_category_test(
-    #             expense_info.name_category, expense_info.category_type
-    #         )
-    #         expense = Expense().get_expense_by_name(expense_info.name_expense)
-    #         if expense:
-    #             print_message("Expense already exists.", "warning")
-    #             return expense[0]
-    #         expense = Expense(
-    #             name=expense_info.name_expense,
-    #             amount=expense_info.amount,
-    #             date=expense_info.date,
-    #             category_id=category_id,
-    #         )
-    #         expense.create_expense()
-    #         time.sleep(1)
-    #         expense_id = Expense().get_expense_id_by_name(expense_info.name_expense)
-    #         return expense_id
-    #     except mysql.connector.Error as error:
-    #         if error.errno == errorcode.ER_TABLE_EXISTS_ERROR:
-    #             print_message("Expense already exists.", "warning")
-    #         else:
-    #             print_message(f"Error creating expense: {error}", "error")
-    #         return None
+    def get_budget_id_by_name_test(self, name):
+        """Function to get budget by name"""
+        budget_id = Budget().get_budget_id_by_name(name)
+        return budget_id
+
+    def list_expenses_test(self):
+        """Function to list expenses"""
+        expenses_list = Expense().get_all_expenses()
+        return expenses_list
+
+    def create_expense_test(self, expense_info: dict):
+        """Function to create an expense"""
+        try:
+            expense = Expense().get_expense_by_name(expense_info["name_expense"])
+            if expense:
+                print_message("Expense already exists.", "warning")
+                return expense[0]
+            expense = Expense(
+                name=expense_info["name_expense"],
+                amount=expense_info["amount"],
+                start_date=expense_info["start_date"],
+                category_id=expense_info["category_id"],
+            )
+            expense.create_expense()
+            time.sleep(1)
+            expense_id = Expense().get_expense_id_by_name(expense_info["name_expense"])
+            return expense_id
+        except mysql.connector.Error as error:
+            if error.errno == errorcode.ER_TABLE_EXISTS_ERROR:
+                print_message("Expense already exists.", "warning")
+            else:
+                print_message(f"Error creating expense: {error}", "error")
+            return None
