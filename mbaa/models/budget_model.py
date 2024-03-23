@@ -1,5 +1,6 @@
 """ Module for budget model """
 
+import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from utils.database import connect_to_database
@@ -12,12 +13,12 @@ from mysql.connector import errorcode
 class Budget:
     """Class for budget model"""
 
-    id: str
-    name: str
-    initial_amount: float
-    final_amount: float
-    date: datetime
-    category_id: int
+    id: str = uuid.uuid4().hex
+    name: str = ""
+    initial_amount: float = 0
+    final_amount: float = 0
+    date: datetime = datetime.now()
+    category_id: str = ""
 
     def create_budget(self):
         """Method to create a budget"""
@@ -81,44 +82,41 @@ class Budget:
         except mysql.connector.Error as error:
             print_message(f"Error updating budget: {error}", "error")
 
+    def get_all_budgets(self):
+        """Method to get all budgets"""
+        try:
+            with connect_to_database() as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT * FROM budgets")
+                    budgets = cursor.fetchall()
+                    return budgets
+        except mysql.connector.Error as error:
+            print_message(f"Error getting budgets: {error}", "error")
+            return []
 
-def get_budgets():
-    """Method to get all budgets"""
-    try:
-        with connect_to_database() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM budgets")
-                budgets = cursor.fetchall()
-                return budgets
-    except mysql.connector.Error as error:
-        print_message(f"Error getting budgets: {error}", "error")
-        return []
+    def get_budget_by_name(self, name):
+        """Method to get budget by name"""
+        try:
+            print_message(f"searching for budget {name}", "info")
+            with connect_to_database() as connection:
+                with connection.cursor() as cursor:
+                    sql = "SELECT * FROM budgets WHERE name = %s"
+                    cursor.execute(sql, (name,))
+                    budget = cursor.fetchone()
+                    return budget
+        except mysql.connector.Error as error:
+            print_message(f"Error getting budget: {error}", "error")
+            return None
 
-
-def get_budget_by_name(name):
-    """Method to get budget by name"""
-    try:
-        print_message(f"searching for budget {name}", "info")
-        with connect_to_database() as connection:
-            with connection.cursor() as cursor:
-                sql = "SELECT * FROM budgets WHERE name = %s"
-                cursor.execute(sql, (name,))
-                budget = cursor.fetchone()
-                return budget
-    except mysql.connector.Error as error:
-        print_message(f"Error getting budget: {error}", "error")
-        return None
-
-
-def get_budget_id_by_name(name):
-    """Method to get budget by name"""
-    try:
-        with connect_to_database() as connection:
-            with connection.cursor() as cursor:
-                sql = "SELECT id FROM budgets WHERE name = %s"
-                cursor.execute(sql, (name,))
-                budget_id = cursor.fetchone()
-                return budget_id[0]
-    except mysql.connector.Error as error:
-        print_message(f"Error getting budget: {error}", "error")
-        return None
+    def get_budget_id_by_name(self, name):
+        """Method to get budget by name"""
+        try:
+            with connect_to_database() as connection:
+                with connection.cursor() as cursor:
+                    sql = "SELECT id FROM budgets WHERE name = %s"
+                    cursor.execute(sql, (name,))
+                    budget_id = cursor.fetchone()
+                    return budget_id[0]
+        except mysql.connector.Error as error:
+            print_message(f"Error getting budget: {error}", "error")
+            return None

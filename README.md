@@ -11,8 +11,8 @@ The Monthly Budget Analysis Assistant (MBAA) is a powerful tool designed to help
 - **Income Tracking**: Easily record and categorize your sources of income.
 - **Expense Management**: Keep track of your expenses by category and monitor your spending habits.
 - **Savings Monitoring**: Set savings goals and track your progress towards achieving them.
-- **Budget Analysis**: Get detailed reports and visualizations to understand your budget trends and make informed financial decisions.
-- **Notifications**: Receive timely reminders and alerts to stay on top of your budget goals.
+<!-- - **Budget Analysis**: Get detailed reports and visualizations to understand your budget trends and make informed financial decisions.
+- **Notifications**: Receive timely reminders and alerts to stay on top of your budget goals. -->
 
 ## Installation
 
@@ -25,8 +25,7 @@ The Monthly Budget Analysis Assistant (MBAA) is a powerful tool designed to help
 5. Install the required dependencies: `pip install -r requirements.txt`
 6. Configure database credentials:
 
-    - Create `config.ini` file in the `data` directory and provide your database credentials.
-
+   - Create `config.ini` file in the `data` directory and provide your database credentials.
 
 ## Usage
 
