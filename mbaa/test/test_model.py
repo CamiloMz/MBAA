@@ -26,7 +26,7 @@ class TestModel:
         category_name = name_category.capitalize()
         category_type = category_type.capitalize()
         try:
-            category = Categories().get_category_by_name(category_name)
+            category = Categories().get_category_by_name(category_name)[0]
 
             if category:
                 print_message("Category already exists.", "warning")
@@ -37,7 +37,8 @@ class TestModel:
             print_message(f"Category {category_name} created.", "info")
             print(category)
             time.sleep(1)
-            category_id = Categories().get_category_id_by_name(category_name)
+            category_id = Categories().get_category_by_name(category_name)
+            print(category_id)
             return category_id
         except mysql.connector.Error as error:
             if error.errno == errorcode.ER_TABLE_EXISTS_ERROR:
@@ -46,9 +47,32 @@ class TestModel:
                 print_message(f"Error creating category: {error}", "error")
             return None
 
+    def edit_category_test(self, category_info: dict):
+        """Function to edit a category"""
+        try:
+            print(category_info)
+            category = Categories().get_category_by_name(category_info["name_category"])
+            print(category)
+            if not category:
+                print_message("Category does not exist.", "warning")
+                return None
+            category = Categories(
+                id=category_info["id_category"],
+                name=category_info["name_category"],
+                type=category_info["category_type"],
+            )
+            print("category")
+            print(category)
+            category.update_category()
+            time.sleep(1)
+            return category
+        except mysql.connector.Error as error:
+            print_message(f"Error updating category: {error}", "error")
+            return None
+
     def get_category_id_by_name_test(self, name):
         """Function to get category by name"""
-        category_id = Categories().get_category_id_by_name(name)
+        category_id = Categories().get_category_by_name(name)[0]
         return category_id
 
     def list_budgets_test(self):
@@ -103,6 +127,7 @@ class TestModel:
                 amount=expense_info["amount"],
                 start_date=expense_info["start_date"],
                 category_id=expense_info["category_id"],
+                budget_id=expense_info["budget_id"],
             )
             expense.create_expense()
             time.sleep(1)

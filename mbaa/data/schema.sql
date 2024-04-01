@@ -4,7 +4,7 @@ USE mbaa;
 CREATE TABLE categories (
     id CHAR(36) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    type ENUM('budget', 'expense', 'pocket') NOT NULL
+    type ENUM('income', 'budget', 'expense', 'pocket') NOT NULL
 );
 
 -- Table for budgets
@@ -36,7 +36,11 @@ CREATE TABLE expenses (
     name VARCHAR(100) NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
     start_date DATE NOT NULL,
+    last_payment_date DATE NOT NULL,
+    next_payment_date DATE NOT NULL,
     category_id CHAR(36) NULL,
+    is_recurrent BOOLEAN NOT NULL,
+    description TEXT,
     FOREIGN KEY (category_id) REFERENCES categories(id)
 );
 

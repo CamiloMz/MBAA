@@ -25,20 +25,20 @@ class TestController:
 
     def categories_list_controller(self):
         """Method to list categories"""
-        categories_list = self.model.list_categories_test()
+        categories_list = self.model.list_categories_test()[0]
         self.view.categories_list_view(categories_list)
 
     def create_category_controller(self, action="GET"):
         """Method to create a category"""
         if action == "POST":
-            name_category = self.view.category_name_entry.get()
-            category_type = self.view.category_type_select.get()
+            name_category = self.view.category_name_entry.get().lower()
+            category_type = self.view.category_type_select.get().lower()
             category_id = self.model.create_category_test(name_category, category_type)
             if category_id:
                 self.view.categories_tree.insert(
                     "",
                     "end",
-                    values=(name_category, category_type),
+                    values=(name_category.capitalize(), category_type.capitalize()),
                 )
                 self.view.category_name_entry.delete(0, "end")
                 self.view.category_type_select.delete(0, "end")
@@ -46,16 +46,51 @@ class TestController:
                 categories = self.model.list_categories_test()
                 categories = [category[1] for category in categories]
                 self.view.budget_category_select["values"] = categories
+                self.view.expense_category_select["values"] = categories
         else:
             self.view.category_main_button.config(
                 command=lambda: self.create_category_controller("POST")
             )
+            self.view.category_edit_button.config(
+                command=lambda: self.edit_category_controller("POST")
+            )
             self.view.create_category_view()
+
+    def edit_category_controller(self, action="GET"):
+        """Method to edit a category"""
+        if action == "POST":
+            name_category = self.view.category_name_entry.get().lower()
+            category_type = self.view.category_type_select.get().lower()
+            category_id = self.model.get_category_id_by_name_test(
+                self.view.categories_tree.item(self.view.categories_tree.selection())[
+                    "values"
+                ][0]
+            )[0]
+            category_info = {
+                "id_category": category_id,
+                "name_category": name_category,
+                "category_type": category_type,
+            }
+            self.model.edit_category_test(category_info)
+            # Clear the treeview
+            for i in self.view.categories_tree.get_children():
+                self.view.categories_tree.delete(i)
+            self.categories_list_controller()
+            self.view.category_name_entry.delete(0, "end")
+            self.view.category_type_select.delete(0, "end")
+            self.view.category_type_select.current(0)
+            self.view.category_main_button.config(
+                state="disabled",
+                command=lambda: self.create_category_controller("POST"),
+            )
+            self.view.category_edit_button.config(
+                state="disabled", command=lambda: self.edit_category_controller("POST")
+            )
+            self.view.edit_mode = False
 
     def budget_list_controller(self):
         """Method to list budgets"""
         budget_list = self.model.list_budgets_test()
-        print(budget_list)
         self.view.budget_list_view(budget_list)
 
     def create_budget_controller(self, action="GET"):
@@ -88,6 +123,9 @@ class TestController:
                 categories = self.model.list_categories_test()
                 categories = [category[1] for category in categories]
                 self.view.budget_category_select["values"] = categories
+                budgets = self.model.list_budgets_test()
+                budgets = [budget[1] for budget in budgets]
+                self.view.expense_budget_select["values"] = budgets
         else:
             self.view.budget_main_button.config(
                 command=lambda: self.create_budget_controller("POST")
@@ -114,6 +152,8 @@ class TestController:
             ).date()
             budget_name = self.view.expense_budget_select.get()
             budget_id = self.model.get_budget_id_by_name_test(budget_name)
+            print("budget id new")
+            print(budget_id)
             expense_info = {
                 "name_expense": name_expense,
                 "amount": amount,
@@ -121,6 +161,8 @@ class TestController:
                 "start_date": date,
                 "budget_id": budget_id,
             }
+            print("expense info")
+            print(expense_info)
             expense_id = self.model.create_expense_test(expense_info)
             if expense_id:
                 self.view.expense_tree.insert(
@@ -141,6 +183,9 @@ class TestController:
             categories = self.model.list_categories_test()
             categories = [category[1] for category in categories]
             self.view.expense_category_select["values"] = categories
+            budgets = self.model.list_budgets_test()
+            budgets = [budget[1] for budget in budgets]
+            self.view.expense_budget_select["values"] = budgets
             self.view.create_expense_view()
 
 

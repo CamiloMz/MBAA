@@ -1,6 +1,6 @@
 """ view for testing """
 
-from tkinter import Tk, LabelFrame, ttk, Button, Entry, Label
+from tkinter import Tk, LabelFrame, ttk, Button, Entry, Label, StringVar
 from dataclasses import dataclass
 
 
@@ -8,41 +8,82 @@ from dataclasses import dataclass
 class TestView:
     """Class for test view"""
 
+    # Constants
     WINDOW_WIDTH = 1130
     WINDOW_HEIGHT = 800
     CATEGORY_FRAME_HEIGHT = 420
     CATEGORY_FRAME_WIDTH = 280
     CATEGORY_TREE_WIDTH = 255
-    BUDGET_FRAME_WIDTH = 400
-    BUDGET_FRAME_HEIGHT = 420
-    EXPENSE_FRAME_WIDTH = 400
-    EXPENSE_FRAME_HEIGHT = 420
     CATEGORY_INPUT_WIDTH = 150
     CATEGORY_LABEL_WIDTH = 50
+    CATEGORY_COLUMNS = ("Name", "Type")
+    CATEGORY_TYPE = ["Pocket", "Expense", "Budget"]
+    BUDGET_FRAME_WIDTH = 400
+    BUDGET_FRAME_HEIGHT = 420
     BUDGET_INPUT_WIDTH = 150
     BUDGET_LABEL_WIDTH = 110
+    BUDGET_COLUMNS = ("Name", "Initial Amount", "Final Amount")
+    EXPENSE_FRAME_WIDTH = 400
+    EXPENSE_FRAME_HEIGHT = 420
+    EXPENSE_COLUMNS = (
+        "Name",
+        "Amount",
+        "Ideal payment date",
+        "Payment Date",
+        "Recurring",
+        "next payment date",
+        "status",
+    )
     BUTTON_WIDTH = 120
-    CATEGORY_TYPE = ["-- select one --", "Pocket", "Expense", "Budget"]
 
+    edit_mode = False
+
+    # Create the window
     window: Tk = Tk()
     window.title("Test View")
     window.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
 
+    # Create the label frames
     categories_tree_frame = LabelFrame(window, text="Categories")
-    categories_tree = ttk.Treeview(categories_tree_frame, height=8)
-    categories_form_label = Label(categories_tree_frame, text="Categories Form")
-    category_name_label = Label(categories_tree_frame, text="Name:")
-    category_name_entry = Entry(categories_tree_frame)
-    category_type_label = Label(categories_tree_frame, text="Type:")
-    category_type_select = ttk.Combobox(
-        categories_tree_frame, values=CATEGORY_TYPE, state="readonly"
-    )
-    category_main_button = Button(categories_tree_frame, text="Create Category")
-    category_edit_button = Button(categories_tree_frame, text="Edit Category")
-
     budget_tree_frame = LabelFrame(window, text="Budgets")
-    budget_tree = ttk.Treeview(budget_tree_frame, height=6)
+    expense_tree_frame = LabelFrame(window, text="Expenses")
+
+    # Create the Treeview for each frame
+    categories_tree = ttk.Treeview(
+        categories_tree_frame, columns=CATEGORY_COLUMNS, show="headings", height=6
+    )
+    budget_tree = ttk.Treeview(
+        budget_tree_frame, columns=CATEGORY_COLUMNS, show="headings", height=6
+    )
+    expense_tree = ttk.Treeview(
+        expense_tree_frame, columns=EXPENSE_COLUMNS, show="headings", height=6
+    )
+
+    # Create the form label for each frame
+    categories_form_label = Label(categories_tree_frame, text="Categories Form")
     budget_form_label = Label(budget_tree_frame, text="Budget Form")
+    expense_form_label = Label(expense_tree_frame, text="Expense Form")
+
+    # Create the labels, entries, comboboxes and buttons for categories
+    category_name_label = Label(categories_tree_frame, text="Name:")
+    category_name = StringVar()
+    category_name_entry = Entry(categories_tree_frame, textvariable=category_name)
+    category_type_label = Label(categories_tree_frame, text="Type:")
+    category_type = StringVar()
+    category_type_select = ttk.Combobox(
+        categories_tree_frame,
+        values=CATEGORY_TYPE,
+        state="disabled",
+        textvariable=category_type,
+    )
+    category_main_button = Button(
+        categories_tree_frame, text="Create Category", state="disabled"
+    )
+    category_edit_button = Button(
+        categories_tree_frame, text="Edit Category", state="disabled"
+    )
+
+    # Create the labels, entries, comboboxes and buttons for budgets
     budget_name_label = Label(budget_tree_frame, text="Name:")
     budget_name_entry = Entry(budget_tree_frame)
     budget_initial_amount_label = Label(budget_tree_frame, text="Initial Amount:")
@@ -54,9 +95,7 @@ class TestView:
     budget_main_button = Button(budget_tree_frame, text="Create Budget")
     budget_edit_button = Button(budget_tree_frame, text="Edit Budget")
 
-    expense_tree_frame = LabelFrame(window, text="Expenses")
-    expense_tree = ttk.Treeview(expense_tree_frame, height=6)
-    expense_form_label = Label(expense_tree_frame, text="Expense Form")
+    # Create the labels, entries, comboboxes and buttons for expenses
     expense_name_label = Label(expense_tree_frame, text="Name:")
     expense_name_entry = Entry(expense_tree_frame)
     expense_amount_label = Label(expense_tree_frame, text="Amount:")
@@ -76,6 +115,22 @@ class TestView:
 
     def categories_list_view(self, categories_list):
         """Method to list categories"""
+
+        def category_selected(event):
+            """Method to select a category"""
+            if self.categories_tree.selection():
+                self.edit_mode = True
+                selected_item = self.categories_tree.selection()[0]
+                category_name = self.categories_tree.item(selected_item)["values"][0]
+                category_type = self.categories_tree.item(selected_item)["values"][1]
+                self.category_name_entry.delete(0, "end")
+                self.category_name_entry.insert(0, category_name)
+                self.category_type_select.delete(0, "end")
+                self.category_type_select.set(category_type)
+                self.category_type_select.config(state="readonly")
+                self.category_main_button.config(state="disabled")
+                self.category_edit_button.config(state="normal")
+
         # Place the tree frame in the window
         self.categories_tree_frame.place(
             x=10,
@@ -85,37 +140,92 @@ class TestView:
             anchor="nw",
         )
 
-        # Structure the tree
-        self.categories_tree["columns"] = ("Name", "Description")
-        self.categories_tree.column("#0", width=0, stretch="no")
+        # Structure columns
         self.categories_tree.column("Name", anchor="center", width=100)
-        self.categories_tree.column("Description", anchor="center", width=100)
-        self.categories_tree.heading(
-            "#0",
-            text="",
-            anchor="center",
-        )
+        self.categories_tree.column("Type", anchor="center", width=100)
+
+        # Create headings
         self.categories_tree.heading("Name", text="Name", anchor="center")
-        self.categories_tree.heading("Description", text="Description", anchor="center")
+        self.categories_tree.heading("Type", text="Type", anchor="center")
+
+        # Place the tree in the frame
         self.categories_tree.place(x=10, y=10, width=self.CATEGORY_TREE_WIDTH)
+
+        # Insert values in the tree
         for category in categories_list:
             self.categories_tree.insert(
                 "",
                 "end",
-                values=(category[1], category[2]),
+                values=(category[1].capitalize(), category[2].capitalize()),
             )
+
+        # Create a scrollbar
+        scrollbar = ttk.Scrollbar(
+            self.categories_tree, orient="vertical", command=self.categories_tree.yview
+        )
+        scrollbar.place(relx=1, rely=0, relheight=1, anchor="ne")
+
+        # Communicate the scrollbar with the tree
+        self.categories_tree.configure(yscrollcommand=scrollbar.set)
+
+        # add select function to the tree
+        self.categories_tree.bind("<<TreeviewSelect>>", category_selected)
 
     def create_category_view(self):
         """Method to create a category"""
+
+        def enable_select(value):
+            """Method to enable the select"""
+            if value == "0":
+                self.category_type_select.config(state="disabled")
+            if self.edit_mode is False:
+                self.category_type_select.config(state="readonly")
+                self.category_type_select.current(0)
+            else:
+                self.category_type_select.config(state="readonly")
+            return True
+
+        def enable_button(value):
+            """Method to enable the button"""
+            if value == "0":
+                self.category_main_button.config(state="disabled")
+            if self.edit_mode is False:
+                self.category_main_button.config(state="normal")
+            return True
+
+        def clear_form():
+            """Method to clear the form"""
+            self.category_name_entry.delete(0, "end")
+            self.category_type_select.delete(0, "end")
+            self.category_type_select.current(0)
+            self.category_type_select.config(state="disabled")
+            self.category_main_button.config(state="disabled")
+            self.category_edit_button.config(state="disabled")
+
+        # Create the cancel button
+        cancel_button = Button(self.categories_tree_frame, text="Cancel")
+        # Register the commands for the validation
+        validate_name_command = self.window.register(enable_select)
+        # place the form components in the frame
         self.categories_form_label.place(x=10, y=210, width=240)
         self.category_name_label.place(x=10, y=240, width=self.CATEGORY_LABEL_WIDTH)
         self.category_name_entry.place(x=70, y=240, width=self.CATEGORY_INPUT_WIDTH)
         self.category_type_label.place(x=10, y=270, width=self.CATEGORY_LABEL_WIDTH)
         self.category_type_select.place(x=70, y=270, width=self.CATEGORY_INPUT_WIDTH)
+        self.category_type_select.current(0)
         self.category_main_button.place(x=10, y=310, width=self.BUTTON_WIDTH)
         self.category_edit_button.place(x=145, y=310, width=self.BUTTON_WIDTH)
-        cancel_button = Button(self.categories_tree_frame, text="Cancel")
         cancel_button.place(x=80, y=350, width=self.BUTTON_WIDTH)
+        # Validate the entry
+        self.category_name_entry.config(
+            validate="key", validatecommand=(validate_name_command, "%i")
+        )
+        # Enable the button
+        self.category_type_select.bind("<<ComboboxSelected>>", enable_button)
+        # Add cancel button command
+        cancel_button.config(
+            command=clear_form,
+        )
 
     def budget_list_view(self, budget_list):
         """Method to list budgets"""
@@ -223,7 +333,7 @@ class TestView:
                     expense[1],
                     float(expense[2]),
                     expense[3],
-                    expense[5],
+                    expense[4],
                 ),
             )
 

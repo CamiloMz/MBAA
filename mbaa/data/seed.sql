@@ -1,2 +1,2 @@
 -- Insert default expense categories
-INSERT INTO categories (id, name) VALUES (UUID(),'Food'), (UUID(),'Transportation'), (UUID(),'Entertainment'), (UUID(),'Health'), (UUID(),'Education'), (UUID(),'Gifts'), (UUID(),'Pets'), (UUID(),'Job'), (UUID(),'Income'), (UUID(),'Savings'), (UUID(),'Investments'), (UUID(),'Debt'), (UUID(),'Other');
+INSERT INTO categories (id, name, type) VALUES (UUID(),'food', 'expense'), (UUID(),'transportation', 'expense'), (UUID(),'entertainment', 'expense'), (UUID(),'health', 'expense'), (UUID(),'education', 'pocket'), (UUID(),'gifts', 'expense'), (UUID(),'pets','expense'), (UUID(),'job', 'income'), (UUID(),'savings', 'pocket'), (UUID(),'investments', 'budget'), (UUID(),'debt', 'expense');

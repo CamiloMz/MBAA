@@ -13,11 +13,15 @@ from mysql.connector import errorcode
 class Expense:
     """Class for expense model"""
 
-    id: str = uuid.uuid4().hex
+    id: str = str(uuid.uuid4())
     name: str = ""
     amount: float = 0
     start_date: datetime = datetime.now()
+    last_payment_date: datetime = datetime.now()
+    next_payment_date: datetime = datetime.now()
+    is_recurrent: bool = False
     category_id: str = ""
+    budget_id: str = ""
 
     def create_expense(self):
         """Method to create an expense"""
@@ -29,22 +33,31 @@ class Expense:
                         "name",
                         "amount",
                         "start_date",
+                        "last_payment_date",
+                        "next_payment_date",
+                        "is_recurrent",
                         "category_id",
                     ]
                     str_cols = f'({", ".join(cols)})'
                     sql = (
-                        f"INSERT INTO expenses {str_cols}"
-                        "VALUES (%s, %s, %s, %s, %s, %s)"
+                        f"INSERT INTO expenses {str_cols}" "VALUES (%s, %s, %s, %s, %s)"
                     )
                     expense_config = [
                         self.id,
                         self.name,
                         self.amount,
                         self.start_date,
+                        self.last_payment_date,
+                        self.next_payment_date,
+                        self.is_recurrent,
                         self.category_id,
                     ]
                     cursor.execute(sql, expense_config)
                     connection.commit()
+                    expense_id = self.get_expense_id_by_name(self.name)
+            self.create_relationship_budgets_expenses(
+                expense_id, self.budget_id, self.amount
+            )
         except mysql.connector.Error as error:
             if error.errno == errorcode.ER_TABLE_EXISTS_ERROR:
                 print("Expense already exists.")
@@ -101,6 +114,7 @@ class Expense:
                         "VALUES (%s, %s, %s)"
                     )
                     relationship_config = (expense_id, budget_id, amount)
+                    print(relationship_config)
                     cursor.execute(sql, relationship_config)
                     connection.commit()
         except mysql.connector.Error as error:

@@ -13,7 +13,7 @@ from mysql.connector import errorcode
 class Budget:
     """Class for budget model"""
 
-    id: str = uuid.uuid4().hex
+    id: str = str(uuid.uuid4())
     name: str = ""
     initial_amount: float = 0
     final_amount: float = 0
