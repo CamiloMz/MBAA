@@ -39,13 +39,14 @@ class Budget:
                         "VALUES (%s, %s, %s, %s, %s, %s)"
                     )
                     budget_config = (
-                        self.id,
+                        str(uuid.uuid4()),
                         self.name,
                         self.initial_amount,
                         self.final_amount,
                         self.date,
                         self.category_id,
                     )
+                    print(budget_config)
                     cursor.execute(sql, budget_config)
                     connection.commit()
         except mysql.connector.Error as error:

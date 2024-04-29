@@ -99,29 +99,51 @@ class TestController:
             name_budget = self.view.budget_name_entry.get()
             initial_amount = self.view.budget_initial_amount_entry.get()
             category_name = self.view.budget_category_select.get()
-            category_id = self.model.get_category_id_by_name_test(category_name)
+            category_id = self.model.get_category_id_by_name_test(category_name)[0]
             date = datetime.strptime(
-                self.view.budget_date_entry.get(), "%d-%m-%Y"
+                self.view.budget_date_entry.get(), "%m-%d-%Y"
             ).date()
-            budget_info = {
-                "name_budget": name_budget,
-                "initial_amount": initial_amount,
-                "category_id": category_id,
-                "date": date,
-            }
+            if self.view.expense_is_recurrent.get() == "is_recurrent":
+                next_payment_date = datetime.strptime(
+                    self.view.expense_next_payment_date_entry.get(), "%m-%d-%Y"
+                ).date()
+                last_payment_date = datetime.strptime(
+                    self.view.expense_last_payment_date_entry.get(), "%m-%d-%Y"
+                ).date()
+                is_recurrent = True
+                budget_info = {
+                    "name_budget": name_budget,
+                    "initial_amount": initial_amount,
+                    "category_id": category_id,
+                    "date": date,
+                    "next_payment_date": next_payment_date,
+                    "last_payment_date": last_payment_date,
+                    "is_recurrent": is_recurrent,
+                }
+            else:
+                budget_info = {
+                    "name_budget": name_budget,
+                    "initial_amount": initial_amount,
+                    "category_id": category_id,
+                    "date": date,
+                }
             budget_id = self.model.create_budget_test(budget_info)
             if budget_id:
+                budget = self.model.get_budget_by_name_test(name_budget)
                 self.view.budget_tree.insert(
                     "",
                     "end",
-                    values=(name_budget, initial_amount, date, category_name),
+                    values=(budget[1], budget[2], budget[3], budget[4]),
                 )
                 self.view.budget_name_entry.delete(0, "end")
                 self.view.budget_initial_amount_entry.delete(0, "end")
                 self.view.budget_date_entry.delete(0, "end")
                 self.view.budget_category_select.delete(0, "end")
+                self.view.budget_category_select.current(0)
+                self.view.expense_last_payment_date_entry.delete(0, "end")
+                self.view.expense_next_payment_date_entry.delete(0, "end")
                 categories = self.model.list_categories_test()
-                categories = [category[1] for category in categories]
+                categories = [category[1].capitalize() for category in categories[0]]
                 self.view.budget_category_select["values"] = categories
                 budgets = self.model.list_budgets_test()
                 budgets = [budget[1] for budget in budgets]
@@ -131,7 +153,7 @@ class TestController:
                 command=lambda: self.create_budget_controller("POST")
             )
             categories = self.model.list_categories_test()
-            categories = [category[1] for category in categories]
+            categories = [category[1].capitalize() for category in categories[0]]
             self.view.budget_category_select["values"] = categories
             self.view.create_budget_view()
 
@@ -146,9 +168,9 @@ class TestController:
             name_expense = self.view.expense_name_entry.get()
             amount = self.view.expense_amount_entry.get()
             category_name = self.view.expense_category_select.get()
-            category_id = self.model.get_category_id_by_name_test(category_name)
+            category_id = self.model.get_category_id_by_name_test(category_name)[0]
             date = datetime.strptime(
-                self.view.expense_start_date_entry.get(), "%d-%m-%Y"
+                self.view.expense_start_date_entry.get(), "%m-%d-%Y"
             ).date()
             budget_name = self.view.expense_budget_select.get()
             budget_id = self.model.get_budget_id_by_name_test(budget_name)
@@ -174,19 +196,31 @@ class TestController:
                 self.view.expense_amount_entry.delete(0, "end")
                 self.view.expense_category_select.delete(0, "end")
                 categories = self.model.list_categories_test()
-                categories = [category[1] for category in categories]
+                categories = [category[1].capitalize() for category in categories[0]]
                 self.view.expense_category_select["values"] = categories
         else:
             self.view.expense_main_button.config(
                 command=lambda: self.create_expense_controller("POST")
             )
+            self.view.expense_is_recurrent_check.config(
+                command=self.show_recurrent_fields
+            )
             categories = self.model.list_categories_test()
-            categories = [category[1] for category in categories]
+            categories = [category[1].capitalize() for category in categories[0]]
             self.view.expense_category_select["values"] = categories
             budgets = self.model.list_budgets_test()
             budgets = [budget[1] for budget in budgets]
             self.view.expense_budget_select["values"] = budgets
             self.view.create_expense_view()
+
+    def show_recurrent_fields(self):
+        """Method to show recurrent fields"""
+        if self.view.expense_is_recurrent.get() == "is_recurrent":
+            self.view.expense_last_payment_date_entry.config(state="readonly")
+            self.view.expense_next_payment_date_entry.config(state="readonly")
+        else:
+            self.view.expense_last_payment_date_entry.config(state="disabled")
+            self.view.expense_next_payment_date_entry.config(state="disabled")
 
 
 if __name__ == "__main__":

@@ -110,6 +110,11 @@ class TestModel:
         budget_id = Budget().get_budget_id_by_name(name)
         return budget_id
 
+    def get_budget_by_name_test(self, name):
+        """Function to get budget by name"""
+        budget = Budget().get_budget_by_name(name)
+        return budget
+
     def list_expenses_test(self):
         """Function to list expenses"""
         expenses_list = Expense().get_all_expenses()

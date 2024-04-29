@@ -1,6 +1,7 @@
 """ view for testing """
 
 from tkinter import Tk, LabelFrame, ttk, Button, Entry, Label, StringVar
+from tkcalendar import DateEntry
 from dataclasses import dataclass
 
 
@@ -24,7 +25,7 @@ class TestView:
     BUDGET_LABEL_WIDTH = 110
     BUDGET_COLUMNS = ("Name", "Initial Amount", "Final Amount")
     EXPENSE_FRAME_WIDTH = 400
-    EXPENSE_FRAME_HEIGHT = 420
+    EXPENSE_FRAME_HEIGHT = 525
     EXPENSE_COLUMNS = (
         "Name",
         "Amount",
@@ -89,11 +90,20 @@ class TestView:
     budget_initial_amount_label = Label(budget_tree_frame, text="Initial Amount:")
     budget_initial_amount_entry = Entry(budget_tree_frame)
     budget_date_label = Label(budget_tree_frame, text="Date:")
-    budget_date_entry = Entry(budget_tree_frame)
+    # budget_date_entry = Entry(budget_tree_frame)
     budget_category_label = Label(budget_tree_frame, text="Category:")
     budget_category_select = ttk.Combobox(budget_tree_frame, state="readonly")
     budget_main_button = Button(budget_tree_frame, text="Create Budget")
     budget_edit_button = Button(budget_tree_frame, text="Edit Budget")
+
+    # Create a datepicker for the budget date
+    budget_date_entry = DateEntry(
+        budget_tree_frame,
+        width=12,
+        background="darkblue",
+        date_pattern="MM-dd-yyyy",
+        state="readonly",
+    )
 
     # Create the labels, entries, comboboxes and buttons for expenses
     expense_name_label = Label(expense_tree_frame, text="Name:")
@@ -106,8 +116,45 @@ class TestView:
     expense_budget_select = ttk.Combobox(expense_tree_frame, state="readonly")
     expense_category_label = Label(expense_tree_frame, text="Category:")
     expense_category_select = ttk.Combobox(expense_tree_frame, state="readonly")
+    expense_is_recurrent_label = Label(expense_tree_frame, text="Is Recurrent:")
+    expense_is_recurrent = StringVar()
+    expense_is_recurrent_check = ttk.Checkbutton(
+        expense_tree_frame,
+        variable=expense_is_recurrent,
+        onvalue="is_recurrent",
+        offvalue="not_recurrent",
+    )
+    expense_last_payment_date_label = Label(
+        expense_tree_frame, text="Last Payment Date:"
+    )
+    expense_last_payment_date_entry = DateEntry(
+        expense_tree_frame,
+        width=12,
+        background="darkblue",
+        date_pattern="MM-dd-yyyy",
+        state="disabled",
+    )
+    expense_next_payment_date_label = Label(
+        expense_tree_frame, text="Next Payment Date:"
+    )
+    expense_next_payment_date_entry = DateEntry(
+        expense_tree_frame,
+        width=12,
+        background="darkblue",
+        date_pattern="MM-dd-yyyy",
+        state="disabled",
+    )
     expense_main_button = Button(expense_tree_frame, text="Create Expense")
     expense_edit_button = Button(expense_tree_frame, text="Edit Expense")
+
+    # Create a datepicker for the expense start date
+    expense_start_date_entry = DateEntry(
+        expense_tree_frame,
+        width=12,
+        background="darkblue",
+        date_pattern="MM-dd-yyyy",
+        state="readonly",
+    )
 
     def run_view(self):
         """Method to run view"""
@@ -360,10 +407,41 @@ class TestView:
         self.expense_category_label.place(x=10, y=320, width=self.BUDGET_LABEL_WIDTH)
         self.expense_category_select.place(x=130, y=320, width=self.BUDGET_INPUT_WIDTH)
 
-        self.expense_main_button.place(x=10, y=360, width=self.BUTTON_WIDTH)
-        self.expense_edit_button.place(x=140, y=360, width=self.BUTTON_WIDTH)
+        self.expense_is_recurrent_label.place(
+            x=10,
+            y=350,
+            width=self.BUDGET_LABEL_WIDTH,
+        )
+
+        self.expense_is_recurrent_check.place(x=130, y=350)
+
+        self.expense_last_payment_date_label.place(
+            x=10,
+            y=380,
+            width=self.BUDGET_LABEL_WIDTH,
+        )
+
+        self.expense_last_payment_date_entry.place(
+            x=130, y=380, width=self.BUDGET_INPUT_WIDTH
+        )
+
+        self.expense_next_payment_date_label.place(
+            x=10,
+            y=410,
+            width=self.BUDGET_LABEL_WIDTH,
+        )
+
+        self.expense_next_payment_date_entry.place(
+            x=130, y=410, width=self.BUDGET_INPUT_WIDTH
+        )
+
+        self.expense_main_button.place(x=10, y=440, width=self.BUTTON_WIDTH)
+
+        self.expense_edit_button.place(x=140, y=440, width=self.BUTTON_WIDTH)
+
         cancel_button = Button(self.expense_tree_frame, text="Cancel")
-        cancel_button.place(x=270, y=360, width=110)
+
+        cancel_button.place(x=270, y=440, width=110)
 
 
 if __name__ == "__main__":

@@ -28,30 +28,51 @@ class Expense:
         try:
             with connect_to_database() as connection:
                 with connection.cursor() as cursor:
-                    cols = [
-                        "id",
-                        "name",
-                        "amount",
-                        "start_date",
-                        "last_payment_date",
-                        "next_payment_date",
-                        "is_recurrent",
-                        "category_id",
-                    ]
-                    str_cols = f'({", ".join(cols)})'
-                    sql = (
-                        f"INSERT INTO expenses {str_cols}" "VALUES (%s, %s, %s, %s, %s)"
-                    )
-                    expense_config = [
-                        self.id,
-                        self.name,
-                        self.amount,
-                        self.start_date,
-                        self.last_payment_date,
-                        self.next_payment_date,
-                        self.is_recurrent,
-                        self.category_id,
-                    ]
+                    if self.is_recurrent:
+                        cols = [
+                            "id",
+                            "name",
+                            "amount",
+                            "start_date",
+                            "last_payment_date",
+                            "next_payment_date",
+                            "is_recurrent",
+                            "category_id",
+                        ]
+                        str_cols = f'({", ".join(cols)})'
+                        sql = (
+                            f"INSERT INTO expenses {str_cols}"
+                            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
+                        )
+                        expense_config = [
+                            self.id,
+                            self.name,
+                            self.amount,
+                            self.start_date,
+                            self.last_payment_date,
+                            self.next_payment_date,
+                            True,
+                            self.category_id,
+                        ]
+                    else:
+                        cols = [
+                            "id",
+                            "name",
+                            "amount",
+                            "start_date",
+                            "category_id",
+                            "is_recurrent",
+                        ]
+                        str_cols = f'({", ".join(cols)})'
+                        sql = f"INSERT INTO expenses {str_cols} VALUES (%s, %s, %s, %s, %s , %s)"
+                        expense_config = [
+                            self.id,
+                            self.name,
+                            self.amount,
+                            self.start_date,
+                            self.category_id,
+                            False,
+                        ]
                     cursor.execute(sql, expense_config)
                     connection.commit()
                     expense_id = self.get_expense_id_by_name(self.name)
