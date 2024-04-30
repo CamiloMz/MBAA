@@ -75,6 +75,11 @@ class TestModel:
         category_id = Categories().get_category_by_name(name)[0]
         return category_id
 
+    def get_category_by_id_test(self, category_id):
+        """Function to get category by id"""
+        category = Categories().get_category_by_id(category_id)
+        return category
+
     def list_budgets_test(self):
         """Function to list budgets"""
         budget_list = Budget().get_all_budgets()
@@ -89,8 +94,7 @@ class TestModel:
                 return budget[0]
             budget = Budget(
                 name=budget_info["name_budget"],
-                initial_amount=budget_info["initial_amount"],
-                final_amount=budget_info["initial_amount"],
+                amount=budget_info["amount"],
                 date=budget_info["date"],
                 category_id=budget_info["category_id"],
             )
@@ -103,6 +107,27 @@ class TestModel:
                 print_message("Budget already exists.", "warning")
             else:
                 print_message(f"Error creating budget: {error}", "error")
+            return None
+
+    def edit_budget_test(self, budget_info: dict):
+        """Function to edit a budget"""
+        try:
+            budget = Budget().get_budget_by_name(budget_info["name_budget"])
+            if not budget:
+                print_message("Budget does not exist.", "warning")
+                return None
+            budget = Budget(
+                id=budget_info["id_budget"],
+                name=budget_info["name_budget"],
+                amount=budget_info["amount"],
+                date=budget_info["date"],
+                category_id=budget_info["category_id"],
+            )
+            budget.update_budget()
+            time.sleep(1)
+            return budget
+        except mysql.connector.Error as error:
+            print_message(f"Error updating budget: {error}", "error")
             return None
 
     def get_budget_id_by_name_test(self, name):
@@ -124,16 +149,33 @@ class TestModel:
         """Function to create an expense"""
         try:
             expense = Expense().get_expense_by_name(expense_info["name_expense"])
+            print("expense_info model")
+            print(expense_info)
             if expense:
                 print_message("Expense already exists.", "warning")
                 return expense[0]
-            expense = Expense(
-                name=expense_info["name_expense"],
-                amount=expense_info["amount"],
-                start_date=expense_info["start_date"],
-                category_id=expense_info["category_id"],
-                budget_id=expense_info["budget_id"],
-            )
+            if expense_info["is_recurrent"] is True:
+                expense = Expense(
+                    name=expense_info["name_expense"],
+                    amount=expense_info["amount"],
+                    start_date=expense_info["start_date"],
+                    category_id=expense_info["category_id"],
+                    budget_id=expense_info["budget_id"],
+                    is_recurrent=expense_info["is_recurrent"],
+                    next_payment_date=expense_info["next_payment_date"],
+                    last_payment_date=expense_info["last_payment_date"],
+                )
+            else:
+                expense = Expense(
+                    name=expense_info["name_expense"],
+                    amount=expense_info["amount"],
+                    start_date=expense_info["start_date"],
+                    category_id=expense_info["category_id"],
+                    budget_id=expense_info["budget_id"],
+                    is_recurrent=expense_info["is_recurrent"],
+                )
+            print(expense)
+            print("expense")
             expense.create_expense()
             time.sleep(1)
             expense_id = Expense().get_expense_id_by_name(expense_info["name_expense"])

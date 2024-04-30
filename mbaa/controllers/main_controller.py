@@ -14,13 +14,13 @@ class MainController:
 
     def run_main_app(self):
         """Method to run main app"""
-        self.list_options_controller()
+        self.show_budget_graph()
         self.view.run_view()
 
-    def list_options_controller(self):
-        """Method to list options"""
-        options = self.model.list_options()
-        self.view.list_options_view(options)
+    def show_budget_graph(self):
+        """Method to show budget graph"""
+        budgets = self.model.get_budget_data()
+        self.view.show_budget_graph_view(budgets)
 
 
 if __name__ == "__main__":

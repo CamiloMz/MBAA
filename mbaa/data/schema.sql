@@ -11,8 +11,7 @@ CREATE TABLE categories (
 CREATE TABLE budgets (
     id CHAR(36) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    initial_amount DECIMAL(10, 2) NOT NULL,
-    final_amount DECIMAL(10, 2) NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
     date DATE NOT NULL,
     category_id CHAR(36) NULL,
     FOREIGN KEY (category_id) REFERENCES categories(id)

@@ -15,8 +15,7 @@ class Budget:
 
     id: str = str(uuid.uuid4())
     name: str = ""
-    initial_amount: float = 0
-    final_amount: float = 0
+    amount: float = 0
     date: datetime = datetime.now()
     category_id: str = ""
 
@@ -29,20 +28,18 @@ class Budget:
                     fields_str = [
                         "id",
                         "name",
-                        "initial_amount",
-                        "final_amount",
+                        "amount",
                         "date",
                         "category_id",
                     ]
                     sql = (
                         f'INSERT INTO budgets ({", ".join(fields_str)})'
-                        "VALUES (%s, %s, %s, %s, %s, %s)"
+                        "VALUES (%s, %s, %s, %s, %s)"
                     )
                     budget_config = (
                         str(uuid.uuid4()),
                         self.name,
-                        self.initial_amount,
-                        self.final_amount,
+                        self.amount,
                         self.date,
                         self.category_id,
                     )
@@ -63,8 +60,7 @@ class Budget:
                 with connection.cursor() as cursor:
                     set_cols = [
                         "name = %s",
-                        "initial_amount = %s",
-                        "final_amount = %s",
+                        "amount = %s",
                         "date = %s",
                         "category_id = %s",
                     ]
@@ -72,8 +68,7 @@ class Budget:
                     sql = "UPDATE budgets " f"SET {set_str} " "WHERE id = %s"
                     budget_config = (
                         self.name,
-                        self.initial_amount,
-                        self.final_amount,
+                        self.amount,
                         self.date,
                         self.category_id,
                         self.id,

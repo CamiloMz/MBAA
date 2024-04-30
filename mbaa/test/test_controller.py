@@ -97,36 +97,18 @@ class TestController:
         """Method to create a budget"""
         if action == "POST":
             name_budget = self.view.budget_name_entry.get()
-            initial_amount = self.view.budget_initial_amount_entry.get()
+            amount = self.view.budget_amount_entry.get()
             category_name = self.view.budget_category_select.get()
             category_id = self.model.get_category_id_by_name_test(category_name)[0]
             date = datetime.strptime(
                 self.view.budget_date_entry.get(), "%m-%d-%Y"
             ).date()
-            if self.view.expense_is_recurrent.get() == "is_recurrent":
-                next_payment_date = datetime.strptime(
-                    self.view.expense_next_payment_date_entry.get(), "%m-%d-%Y"
-                ).date()
-                last_payment_date = datetime.strptime(
-                    self.view.expense_last_payment_date_entry.get(), "%m-%d-%Y"
-                ).date()
-                is_recurrent = True
-                budget_info = {
-                    "name_budget": name_budget,
-                    "initial_amount": initial_amount,
-                    "category_id": category_id,
-                    "date": date,
-                    "next_payment_date": next_payment_date,
-                    "last_payment_date": last_payment_date,
-                    "is_recurrent": is_recurrent,
-                }
-            else:
-                budget_info = {
-                    "name_budget": name_budget,
-                    "initial_amount": initial_amount,
-                    "category_id": category_id,
-                    "date": date,
-                }
+            budget_info = {
+                "name_budget": name_budget,
+                "amount": amount,
+                "category_id": category_id,
+                "date": date,
+            }
             budget_id = self.model.create_budget_test(budget_info)
             if budget_id:
                 budget = self.model.get_budget_by_name_test(name_budget)
@@ -136,14 +118,17 @@ class TestController:
                     values=(budget[1], budget[2], budget[3], budget[4]),
                 )
                 self.view.budget_name_entry.delete(0, "end")
-                self.view.budget_initial_amount_entry.delete(0, "end")
-                self.view.budget_date_entry.delete(0, "end")
+                self.view.budget_amount_entry.delete(0, "end")
                 self.view.budget_category_select.delete(0, "end")
                 self.view.budget_category_select.current(0)
                 self.view.expense_last_payment_date_entry.delete(0, "end")
                 self.view.expense_next_payment_date_entry.delete(0, "end")
-                categories = self.model.list_categories_test()
-                categories = [category[1].capitalize() for category in categories[0]]
+                categories = self.model.list_categories_test()[0]
+                categories = [
+                    category[1].capitalize()
+                    for category in categories
+                    if category[2] == "budget"
+                ]
                 self.view.budget_category_select["values"] = categories
                 budgets = self.model.list_budgets_test()
                 budgets = [budget[1] for budget in budgets]
@@ -152,15 +137,28 @@ class TestController:
             self.view.budget_main_button.config(
                 command=lambda: self.create_budget_controller("POST")
             )
-            categories = self.model.list_categories_test()
-            categories = [category[1].capitalize() for category in categories[0]]
+            categories = self.model.list_categories_test()[0]
+            categories = [
+                category[1].capitalize()
+                for category in categories
+                if category[2] == "budget"
+            ]
             self.view.budget_category_select["values"] = categories
             self.view.create_budget_view()
 
     def expense_list_controller(self):
         """Method to list expenses"""
         expenses_list = self.model.list_expenses_test()
-        self.view.expenses_list_view(expenses_list)
+        expenses_list_to_view = []
+        for expense in expenses_list:
+            expense = (
+                expense[1],
+                expense[2],
+                expense[3],
+                self.model.get_category_by_id_test(expense[6])[0][1],
+            )
+            expenses_list_to_view.append(expense)
+        self.view.expenses_list_view(expenses_list_to_view)
 
     def create_expense_controller(self, action="GET"):
         """Method to create an expense"""
@@ -173,20 +171,57 @@ class TestController:
                 self.view.expense_start_date_entry.get(), "%m-%d-%Y"
             ).date()
             budget_name = self.view.expense_budget_select.get()
-            budget_id = self.model.get_budget_id_by_name_test(budget_name)
-            print("budget id new")
-            print(budget_id)
-            expense_info = {
-                "name_expense": name_expense,
-                "amount": amount,
-                "category_id": category_id,
-                "start_date": date,
-                "budget_id": budget_id,
-            }
-            print("expense info")
-            print(expense_info)
+            try:
+                budget = self.model.get_budget_by_name_test(budget_name)
+                budget_id = budget[0]
+                final_amount = float(budget[2]) - float(amount)
+                if final_amount < 0:
+                    raise ValueError("Final amount is greater than initial amount")
+            except ValueError as error:
+                print(error)
+                return None
+            is_recurrent = self.view.expense_is_recurrent.get()
+            if is_recurrent == "is_recurrent":
+                next_payment_date = datetime.strptime(
+                    self.view.expense_next_payment_date_entry.get(), "%m-%d-%Y"
+                ).date()
+                last_payment_date = datetime.strptime(
+                    self.view.expense_last_payment_date_entry.get(), "%m-%d-%Y"
+                ).date()
+                expense_info = {
+                    "name_expense": name_expense,
+                    "amount": amount,
+                    "category_id": category_id,
+                    "start_date": date,
+                    "budget_id": budget_id,
+                    "next_payment_date": next_payment_date,
+                    "last_payment_date": last_payment_date,
+                    "is_recurrent": True,
+                }
+            else:
+                expense_info = {
+                    "name_expense": name_expense,
+                    "amount": amount,
+                    "category_id": category_id,
+                    "start_date": date,
+                    "budget_id": budget_id,
+                    "is_recurrent": False,
+                }
             expense_id = self.model.create_expense_test(expense_info)
             if expense_id:
+                if budget:
+                    budget_info = {
+                        "id_budget": budget[0],
+                        "name_budget": budget_name,
+                        "amount": budget[2],
+                        "category_id": category_id,
+                        "date": date,
+                    }
+                    self.model.edit_budget_test(budget_info)
+                    # Clear the treeview
+                    for i in self.view.budget_tree.get_children():
+                        self.view.budget_tree.delete(i)
+                    self.budget_list_controller()
                 self.view.expense_tree.insert(
                     "",
                     "end",
@@ -195,9 +230,25 @@ class TestController:
                 self.view.expense_name_entry.delete(0, "end")
                 self.view.expense_amount_entry.delete(0, "end")
                 self.view.expense_category_select.delete(0, "end")
-                categories = self.model.list_categories_test()
-                categories = [category[1].capitalize() for category in categories[0]]
+                self.view.expense_category_select.current(0)
+                categories = self.model.list_categories_test()[0]
+                categories = [
+                    category[1].capitalize()
+                    for category in categories
+                    if category[2] == "expense"
+                ]
                 self.view.expense_category_select["values"] = categories
+                self.view.expense_budget_select.delete(0, "end")
+                self.view.expense_budget_select.current(0)
+                budgets = self.model.list_budgets_test()
+                budgets = [budget[1] for budget in budgets]
+                self.view.expense_budget_select["values"] = budgets
+                self.view.expense_start_date_entry.delete(0, "end")
+                self.view.expense_last_payment_date_entry.delete(0, "end")
+                self.view.expense_next_payment_date_entry.delete(0, "end")
+                self.view.expense_is_recurrent.set("not_recurrent")
+                self.view.expense_last_payment_date_entry.config(state="disabled")
+                self.view.expense_next_payment_date_entry.config(state="disabled")
         else:
             self.view.expense_main_button.config(
                 command=lambda: self.create_expense_controller("POST")
@@ -205,12 +256,17 @@ class TestController:
             self.view.expense_is_recurrent_check.config(
                 command=self.show_recurrent_fields
             )
-            categories = self.model.list_categories_test()
-            categories = [category[1].capitalize() for category in categories[0]]
+            categories = self.model.list_categories_test()[0]
+            categories = [
+                category[1].capitalize()
+                for category in categories
+                if category[2] == "expense"
+            ]
             self.view.expense_category_select["values"] = categories
             budgets = self.model.list_budgets_test()
             budgets = [budget[1] for budget in budgets]
             self.view.expense_budget_select["values"] = budgets
+            self.view.expense_is_recurrent.set("not_recurrent")
             self.view.create_expense_view()
 
     def show_recurrent_fields(self):

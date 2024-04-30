@@ -17,8 +17,9 @@ class Expense:
     name: str = ""
     amount: float = 0
     start_date: datetime = datetime.now()
-    last_payment_date: datetime = datetime.now()
-    next_payment_date: datetime = datetime.now()
+    is_recurrent: bool = False
+    last_payment_date: datetime = datetime.now().date()
+    next_payment_date: datetime = datetime.now().date()
     is_recurrent: bool = False
     category_id: str = ""
     budget_id: str = ""
@@ -45,7 +46,7 @@ class Expense:
                             "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
                         )
                         expense_config = [
-                            self.id,
+                            str(uuid.uuid4()),
                             self.name,
                             self.amount,
                             self.start_date,
@@ -66,13 +67,14 @@ class Expense:
                         str_cols = f'({", ".join(cols)})'
                         sql = f"INSERT INTO expenses {str_cols} VALUES (%s, %s, %s, %s, %s , %s)"
                         expense_config = [
-                            self.id,
+                            str(uuid.uuid4()),
                             self.name,
                             self.amount,
                             self.start_date,
                             self.category_id,
                             False,
                         ]
+                    print(expense_config)
                     cursor.execute(sql, expense_config)
                     connection.commit()
                     expense_id = self.get_expense_id_by_name(self.name)
@@ -123,6 +125,24 @@ class Expense:
         except mysql.connector.Error as error:
             print_message(f"Error getting expense: {error}", "error")
             return None
+
+    def get_expenses_by_budget_id(self, budget_id):
+        """Method to get expenses by budget id"""
+        try:
+            with connect_to_database() as connection:
+                with connection.cursor() as cursor:
+                    sql = (
+                        "SELECT e.name, e.amount, c.name FROM expenses as e "
+                        "INNER JOIN budgets_expenses as b ON e.id = b.expense_id "
+                        "INNER JOIN categories as c ON e.category_id = c.id "
+                        "WHERE b.budget_id = %s"
+                    )
+                    cursor.execute(sql, (budget_id,))
+                    expenses = cursor.fetchall()
+                    return expenses
+        except mysql.connector.Error as error:
+            print_message(f"Error getting expenses: {error}", "error")
+            return []
 
     def create_relationship_budgets_expenses(self, expense_id, budget_id, amount):
         """Method to create a relationship between expense and budget"""
