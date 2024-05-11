@@ -6,7 +6,6 @@ from utils.constants import MAIN_VIEW_HEIGHT, MAIN_VIEW_TITLE, MAIN_VIEW_WIDTH
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import sys
 
 
 @dataclass
@@ -23,9 +22,7 @@ class MainView:
 
     def run_view(self):
         """Method to run view"""
-        self.window.protocol(
-            "WM_DELETE_WINDOW", self.on_closing
-        )  # Bind the close event to on_closing function
+        self.window.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.window.mainloop()
 
     def on_closing(self):
@@ -33,7 +30,6 @@ class MainView:
         plt.close("all")  # Close all Matplotlib figures
         self.window.quit()  # Quit the Tkinter main loop
         self.window.destroy()  # Destroy the Tkinter window
-        sys.exit()
 
     def show_budget_graph_view(self, budget_data: dict):
         """Method to show budget graph"""
